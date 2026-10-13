@@ -5,3 +5,5 @@ package: .
 
 # Wasmer Edge 会注入 PORT，代码通过 std::env::var("PORT") 读取。
 # 可选：设置 GITHUB_TOKEN 环境变量以提升 GitHub API 速率限制。
+owner: anccnuer
+app_id: da_R8EIJtNU7bPx

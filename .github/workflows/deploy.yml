@@ -1,10 +1,10 @@
-name: Build WASIX wasm artifact
+name: Build WASIX wasm and deploy to Wasmer Edge
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,3 +33,11 @@ jobs:
           name: gitread-edge-wasm
           path: target/wasm32-wasmer-wasi/release/gitread-edge.wasm
           if-no-files-found: error
+
+      - name: Install wasmer CLI
+        run: curl -fsSL https://get.wasmer.io | sh
+
+      - name: Deploy to Wasmer Edge
+        env:
+          WASMER_TOKEN: ${{ secrets.WASMER_TOKEN }}
+        run: ~/.wasmer/bin/wasmer deploy --token "$WASMER_TOKEN" --owner anccnuer
