@@ -16,6 +16,11 @@ jobs:
       - name: Install cargo-wasix
         run: cargo install cargo-wasix --locked
 
+      - name: Install native linker (for host build scripts)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends binutils lld
+
       - name: Build wasm (wasm32-wasmer-wasi)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
