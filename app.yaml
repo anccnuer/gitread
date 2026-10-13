@@ -1,0 +1,7 @@
+kind: wasmer.io/App.v0
+name: gitread-edge
+# `.` 表示使用当前目录的 wasmer.toml 作为本地包，首次 `wasmer deploy` 会据此发布。
+package: .
+
+# Wasmer Edge 会注入 PORT，代码通过 std::env::var("PORT") 读取。
+# 可选：设置 GITHUB_TOKEN 环境变量以提升 GitHub API 速率限制。

@@ -1,0 +1,16 @@
+[package]
+name = "gitread-edge"
+version = "0.1.0"
+description = "GitHub README 预览 & Release 加速下载，运行于 Wasmer Edge (WASIX)"
+wasmer-extra-flags = "--net --enable-threads --enable-bulk-memory"
+
+[dependencies]
+
+[[module]]
+name = "gitread-edge"
+source = "target/wasm32-wasmer-wasi/release/gitread-edge.wasm"
+
+[[command]]
+name = "gitread-edge"
+module = "gitread-edge"
+runner = "wasi@unstable_"

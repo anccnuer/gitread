@@ -1,0 +1,33 @@
+name: Build WASIX wasm and deploy to Wasmer Edge
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-wasix and WASIX toolchain
+        run: |
+          cargo install cargo-wasix --locked
+          wasix setup
+
+      - name: Build wasm (wasm32-wasmer-wasi)
+        run: cargo wasix build --release
+
+      - name: Verify artifact exists
+        run: ls -l target/wasm32-wasmer-wasi/release/gitread-edge.wasm
+
+      - name: Install wasmer CLI
+        run: curl -fsSL https://get.wasmer.io | sh
+
+      - name: Deploy to Wasmer Edge
+        env:
+          WASMER_TOKEN: ${{ secrets.WASMER_TOKEN }}
+        run: ~/.wasmer/bin/wasmer deploy --token "$WASMER_TOKEN"
