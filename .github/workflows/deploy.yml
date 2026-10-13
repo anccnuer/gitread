@@ -13,12 +13,12 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Install cargo-wasix and WASIX toolchain
-        run: |
-          cargo install cargo-wasix --locked
-          wasix setup
+      - name: Install cargo-wasix
+        run: cargo install cargo-wasix --locked
 
       - name: Build wasm (wasm32-wasmer-wasi)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: cargo wasix build --release
 
       - name: Verify artifact exists
