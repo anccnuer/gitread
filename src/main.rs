@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::{
     body::Body,
@@ -139,7 +140,20 @@ fn bad_gateway(err: reqwest::Error) -> (StatusCode, Json<serde_json::Value>) {
     )
 }
 
+/// raw.githubusercontent 上的常见 README 文件名（大小写敏感，按命中率排序）
+const README_CANDIDATES: &[&str] = &[
+    "README.md",
+    "readme.md",
+    "README",
+    "Readme.md",
+    "README.MD",
+    "README.txt",
+    "readme.txt",
+];
+
 /// GET /api/readme?url=<github link>
+/// 优先直接拼 raw.githubusercontent.com（CDN、不占 API 限额），
+/// HEAD 自动解析默认分支；全部落空再回退 API /readme（可找到非根目录/罕见命名的 README）。
 async fn readme(
     State(state): State<Arc<AppState>>,
     Query(q): Query<UrlQuery>,
@@ -150,6 +164,35 @@ async fn readme(
             return (code, Json(json!({ "error": msg }))).into_response()
         }
     };
+
+    for name in README_CANDIDATES {
+        let raw_url =
+            format!("https://raw.githubusercontent.com/{owner}/{repo}/HEAD/{name}");
+        let resp = match state
+            .client
+            .get(&raw_url)
+            .timeout(Duration::from_secs(10))
+            .send()
+            .await
+        {
+            Ok(r) => r,
+            Err(_) => continue,
+        };
+        if resp.status().is_success() {
+            if let Ok(content) = resp.text().await {
+                return (
+                    StatusCode::OK,
+                    Json(json!({
+                        "owner": owner,
+                        "repo": repo,
+                        "file": name,
+                        "content": content,
+                    })),
+                )
+                    .into_response();
+            }
+        }
+    }
 
     let api = format!("https://api.github.com/repos/{owner}/{repo}/readme");
     let resp = match state
