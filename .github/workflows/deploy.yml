@@ -19,7 +19,9 @@ jobs:
       - name: Build wasm (wasm32-wasmer-wasi)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: cargo wasix build --release
+        run: |
+          rm -f Cargo.lock  # 针对 WASIX registry 重新解析依赖
+          cargo wasix build --release
 
       - name: Verify artifact exists
         run: ls -l target/wasm32-wasmer-wasi/release/gitread-edge.wasm
