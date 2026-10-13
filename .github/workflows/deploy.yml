@@ -1,12 +1,10 @@
-name: Build WASIX wasm and deploy to Wasmer Edge
+name: Build WASIX wasm artifact
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,19 +20,16 @@ jobs:
           sudo apt-get install -y --no-install-recommends binutils lld
 
       - name: Build wasm (wasm32-wasmer-wasi)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           rm -f Cargo.lock  # 针对 WASIX registry 重新解析依赖
           cargo wasix build --release
 
-      - name: Verify artifact exists
+      - name: Verify wasm exists
         run: ls -l target/wasm32-wasmer-wasi/release/gitread-edge.wasm
 
-      - name: Install wasmer CLI
-        run: curl -fsSL https://get.wasmer.io | sh
-
-      - name: Deploy to Wasmer Edge
-        env:
-          WASMER_TOKEN: ${{ secrets.WASMER_TOKEN }}
-        run: ~/.wasmer/bin/wasmer deploy --token "$WASMER_TOKEN"
+      - name: Upload wasm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitread-edge-wasm
+          path: target/wasm32-wasmer-wasi/release/gitread-edge.wasm
+          if-no-files-found: error
